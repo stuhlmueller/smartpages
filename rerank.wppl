@@ -1,0 +1,88 @@
+// Utils
+
+var sum = function(xs){
+  if (xs.length == 0) {
+    return 0;
+  } else {
+    return xs[0] + sum(xs.slice(1));
+  }
+};
+
+var expectation = function(erp, f){
+  var xs = erp.support([]);
+  var W = sum(map(xs, function(x){return Math.exp(erp.score([], x)) * f(x);}));
+  var Z = sum(map(xs, function(x){return Math.exp(erp.score([], x));}));
+  return W / Z;
+};
+
+var nthMean = function(erp, n){
+  return expectation(erp, function(x){return x[n];});
+};
+
+var ones = function(n){
+  if (n == 0){
+    return [];
+  } else {
+    return [1].concat(ones(n-1));
+  }
+};
+
+
+// Data
+
+var links = [0, 1, 2, 3, 4];
+var N = links.length;
+var pastUserClicks = [
+  [0, 1, 0, 1, 0, 2],
+  [1, 0, 1, 0, 1, 3],
+  [1, 1, 1, 0, 1, 4],
+  [2, 3, 2, 3, 2, 0],
+  [3, 2, 3, 2, 2, 1],
+  [3, 3, 3, 2, 2, 4],
+  [4, 4, 4, 4, 4, 1],
+  [4, 4, 4, 4, 4, 3]
+];
+var currentUserClicks = [0];
+
+
+// Model
+
+var model = function(){
+
+  // Hyperparameters
+  var alpha = uniform(0, 1);
+  var p1s = dirichlet(ones(N));
+  var p2s = dirichlet(ones(N));
+
+  // Past user observations
+  map(
+    pastUserClicks,
+    function(clicks){
+      var ps = flip(alpha) ? p1s : p2s;
+      map(
+        clicks,
+        function(click){
+          erpFactor(discreteERP, [ps], click);
+        });
+    });
+
+  // Current user observation
+  var component = flip(alpha);
+  var ps = component ? p1s : p2s;
+  map(
+    currentUserClicks,
+    function(click){
+      erpFactor(discreteERP, [ps], click);
+    });
+
+  // Posterior predictive
+  return ps;
+};
+
+
+// Average predictive distribution on link clicks for current user
+
+// var result = MH(model, 1000);
+var result = PMCMC(model, 100, 5);
+
+map(links, function(link){return nthMean(result, link);})

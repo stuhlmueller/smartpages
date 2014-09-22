@@ -24,27 +24,22 @@
           { url: "http://www.buzzfeed.com/kaylayandoli/when-youre-here-youre-horrified",
             title: "14 Restaurant Horror Stories That'll Make You Want To Order Takeout",
             score: 0,
-            clicks: 0,
             id: 0 },
           { url: "http://www.buzzfeed.com/abefg/we-turned-a-bunch-of-weird-snacks-into-ice-cream-flavors",
             title: "We Turned A Bunch Of Weird Snacks Into Ice Cream Flavors",
             score: 0,
-            clicks: 0,
             id: 1 },
           { url: "http://www.buzzfeed.com/chelseamarshall/things-that-mean-something-different-when-you-have-a-cat",
             title: "21 Words That Mean Something Different When You Have A Cat",
             score: 0,
-            clicks: 0,
             id: 2 },
           { url: "http://www.buzzfeed.com/samimain/dog-uses-sunroof-experiences-nirvana",
             title: "Dog Uses Sunroof, Experiences Nirvana",
             score: 0,
-            clicks: 0,
             id: 3 },
           { url: "http://www.buzzfeed.com/samstryker/hoggy-hoggy-hogwarts-tell-us-secrets",
             title: "27 Secrets Hogwarts Students Won't Tell You",
             score: 0,
-            clicks: 0,
             id: 4},
       ];
 
@@ -78,7 +73,7 @@
       
       var ScoredLink = React.createClass({
           incrementClickCount: function(e){
-              linkData[this.props.data.id].clicks += 1;
+              currentUser.push(this.props.data.id);
               setStatus("Click count updated, running predictor...");
               runPredictor();
           },

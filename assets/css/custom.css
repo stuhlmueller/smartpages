@@ -1,3 +1,7 @@
+body {
+   font: normal 21px/23px "ProximaNovaSemibold",Helvetica,Arial,sans-serif;
+}
+
 span.score {
    margin-right: .5em;
    color: #aaa;
@@ -9,8 +13,10 @@ div#linklist {
 }
 
 div#status {
-  position: absolute;
-  top: 11em;
+   position: absolute;
+   top: 9.5em;
+   left: 2.5em;
+   color: #aaa;
 }
 
 div#linklist ul li { 
@@ -24,3 +30,21 @@ div#linklist ul li:nth-child(2)  { transform: translate3d(0, 100%, 0); }
 div#linklist ul li:nth-child(3)  { transform: translate3d(0, 200%, 0); }
 div#linklist ul li:nth-child(4)  { transform: translate3d(0, 300%, 0); }
 div#linklist ul li:nth-child(5)  { transform: translate3d(0, 400%, 0); }
+
+li {
+   text-shadow: 1px 1px 0 white;
+   line-height: 22px;
+}
+
+li a {
+   text-decoration: none;
+   color: #07e;
+}
+
+li a:hover {
+   color: #f00;
+}
+
+li a:visited {
+   color: purple;
+}

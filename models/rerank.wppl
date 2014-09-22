@@ -1,0 +1,106 @@
+// Utils
+
+var sum = function(xs){
+  if (xs.length == 0) {
+    return 0;
+  } else {
+    return xs[0] + sum(xs.slice(1));
+  }
+};
+
+var expectation = function(erp, f){
+  var xs = erp.support([]);
+  var W = sum(map(xs, function(x){return Math.exp(erp.score([], x)) * f(x);}));
+  var Z = sum(map(xs, function(x){return Math.exp(erp.score([], x));}));
+  return W / Z;
+};
+
+var nthMean = function(erp, n){
+  return expectation(erp, function(x){return x[n];});
+};
+
+var range = function(n, j){
+  var i = (j == undefined) ? 0 : j;
+  if (i == n) {
+    return [];
+  } else {
+    return [i].concat(range(n, i+1));
+  }
+};
+
+var ones = function(n){
+  if (n == 0){
+    return [];
+  } else {
+    return [1].concat(ones(n-1));
+  }
+};
+
+
+// Predictor
+
+// numLinks:
+//   total number of links; ids will be 0...(numLinks-1)
+// numTypes:
+//   number of user prototypes
+// pastUsers:
+//   list of lists; each list contains link ids clicked by a user
+// currentUser:
+//   list of link ids clicked by current user
+
+var predict = function(numLinks, numTypes, pastUsers, currentUser){
+
+  var links = range(numLinks);
+
+  var model = function(){
+
+    // Hyperparameters
+
+    var allLinkProbs = map(
+      ones(numTypes),
+      function(){
+        return dirichlet(ones(numLinks));
+      });
+
+    var sampleLinkProbs = function(){
+      // Could also learn a non-uniform distribution
+      // over components
+      var componentIndex = discrete(ones(numTypes));
+      return allLinkProbs[componentIndex];
+    };
+
+    // Past user observations
+    map(
+      pastUsers,
+      function(clicks){
+        var ps = sampleLinkProbs();
+        map(
+          clicks,
+          function(click){
+            erpFactor(discreteERP, [ps], click);
+          });
+      });
+
+    // Current user observation
+    var ps = sampleLinkProbs();
+    map(
+      currentUser,
+      function(click){
+        erpFactor(discreteERP, [ps], click);
+      });
+
+    // Posterior predictive
+    return ps;
+  };
+
+
+  // Average predictive distribution on link clicks for current user
+
+  var erp = MH(model, 500);
+  var result = map(links, function(link){return nthMean(erp, link);});
+
+  return result;
+};
+
+// Next line is necessary to make predict be defined on top level
+console.log("Loaded.");

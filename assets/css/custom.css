@@ -1,0 +1,8 @@
+li.scoredLink {
+   margin-top: .5em;
+}
+
+span.score {
+   margin-right: .5em;
+   color: #bbb;
+}

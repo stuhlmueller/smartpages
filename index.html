@@ -52,14 +52,14 @@
       
       // IDs of links clicked for each previous user
       var pastUsers = [
-          [0, 1, 0, 1, 0],
-          [1, 0, 1, 0, 1],
-          [1, 1, 1, 0, 1],
-          [2, 3, 2, 3, 2],
-          [3, 2, 3, 2, 2],
-          [3, 3, 3, 2, 2],
-          [4, 4, 4, 4, 4],
-          [4, 4, 4, 4, 4]
+          [0, 1, 0, 1, 0, 1, 0],
+          // [1, 0, 1, 0, 1],
+          // [1, 1, 1, 0, 1],
+          [2, 3, 2, 3, 2, 3, 2],
+          // [3, 2, 3, 2, 2],
+          // [3, 3, 3, 2, 2],
+          // [4, 4, 4, 4, 4],
+          [4, 4, 4, 4, 4, 4, 4]
       ];
       
       // IDs of links clicked by current user
@@ -143,8 +143,12 @@
       // Run inference to get new link scores
       var runPredictor = function(){
           setStatus("Running predictor...");
+          var start = new Date().getTime();
           predict(
               function(scores){
+                  var end = new Date().getTime();
+                  var time = end - start;
+                  console.log((time / 1000).toString() + " seconds");
                   setStatus("Predictor done.");
                   processLinkScores(scores);
                   console.log(scores)

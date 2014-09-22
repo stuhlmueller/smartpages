@@ -96,7 +96,7 @@ var predict = function(numLinks, numTypes, pastUsers, currentUser){
 
   // Average predictive distribution on link clicks for current user
 
-  var erp = MH(model, 500);
+  var erp = MH(model, 100);
   var result = map(links, function(link){return nthMean(erp, link);});
 
   return result;

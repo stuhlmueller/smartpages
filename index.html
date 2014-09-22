@@ -11,74 +11,46 @@
   <body>
 
     <div id="linklist"></div>
+    <div id="status"></div>
 
     <script type="text/jsx">
       /** @jsx React.DOM */
 
+
+      ////////////////////////////////////////////////////////////////////
+      // Data
+
       var linkData = [
           { url: "http://www.buzzfeed.com/kaylayandoli/when-youre-here-youre-horrified",
             title: "14 Restaurant Horror Stories That'll Make You Want To Order Takeout",
-            score: 0 },
+            score: 0,
+            clicks: 0,
+            id: 0 },
           { url: "http://www.buzzfeed.com/abefg/we-turned-a-bunch-of-weird-snacks-into-ice-cream-flavors",
             title: "We Turned A Bunch Of Weird Snacks Into Ice Cream Flavors",
-            score: 0 },
+            score: 0,
+            clicks: 0,
+            id: 1 },
           { url: "http://www.buzzfeed.com/chelseamarshall/things-that-mean-something-different-when-you-have-a-cat",
             title: "21 Words That Mean Something Different When You Have A Cat",
-            score: 0 },
+            score: 0,
+            clicks: 0,
+            id: 2 },
           { url: "http://www.buzzfeed.com/samimain/dog-uses-sunroof-experiences-nirvana",
             title: "Dog Uses Sunroof, Experiences Nirvana",
-            score: 0 },
+            score: 0,
+            clicks: 0,
+            id: 3 },
           { url: "http://www.buzzfeed.com/samstryker/hoggy-hoggy-hogwarts-tell-us-secrets",
             title: "27 Secrets Hogwarts Students Won't Tell You",
-            score: 0 },
+            score: 0,
+            clicks: 0,
+            id: 4},
       ];
 
-      var ScoredLink = React.createClass({
-          render: function(){
-              return (<div>
-                        <span className="score">{this.props.data.score}</span>
-                        <a href="{this.props.data.url}">
-                        {this.props.data.title}
-                        </a>
-                      </div>);
-          }
-      });
-
-      var ScoredLinkList = React.createClass({          
-          getInitialState: function(){
-              return {
-                  links: this.props.links
-              }
-          },
-          render: function(){
-              var linkNodes = this.state.links.map(function(link){
-                  return (<li className="scoredLink">
-                            <ScoredLink data={link} />
-                         </li>);
-              })
-              return (<ul>
-                  {linkNodes}
-              </ul>);
-          }
-      });
-
-      React.renderComponent(
-        <ScoredLinkList links={linkData} />,
-        document.getElementById('linklist')
-      );
-    </script>
-
-    <div id="status">
-    </div>
-
-    <script type="text/javascript">
-
-      // Total number of links
-      var numLinks = 5;
-
-      // Number of distinct user prototypes
-      var numUserTypes = 3;
-
+      var numLinks = linkData.length;      
+      var numUserTypes = 3;  // Number of distinct user prototypes
+      
       // IDs of links clicked for each previous user
       var pastUsers = [
           [0, 1, 0, 1, 0],
@@ -90,26 +62,75 @@
           [4, 4, 4, 4, 4],
           [4, 4, 4, 4, 4]
       ];
-
+      
       // IDs of links clicked by current user
       var currentUser = [];
 
-      // Top-level continuation
-      var topK = function(x){
-          console.log(x);
-      };
 
-      // Update inference status on page
+      ////////////////////////////////////////////////////////////////////
+      // User interface
+
+      var ScoredLink = React.createClass({
+          incrementClickCount: function(e){
+              linkData[this.props.data.id].clicks += 1;
+              setStatus("Click count updated, running predictor...");
+              runPredictor();
+          },
+          render: function(){
+              return (<div>                        
+                        <a href={this.props.data.url} onClick={this.incrementClickCount}>
+                        {this.props.data.title}
+                        </a>
+                        <span className="score">{this.props.data.score}</span>
+                      </div>);
+          }
+      });
+
+      var ScoredLinkList = React.createClass({          
+          render: function(){
+              // sort links by score
+              var linkCopy = this.props.links.slice();
+              linkCopy.sort(function(a, b){
+                  return a.score < b.score;
+              });              
+              var linkNodes = linkCopy.map(function(link){
+                  return (<li className="scoredLink">
+                            <ScoredLink data={link} />
+                         </li>);
+              })
+              return (<ul>
+                  {linkNodes}
+              </ul>);
+          }
+      });
+
+      var linkList = React.renderComponent(
+          <ScoredLinkList links={linkData} />, 
+          document.getElementById('linklist'));
+
       var setStatus = function(status){
           $("#status").text(status);
       }
 
-      // Update link scores on page, reorder links
-      var processLinkScores = function(scores){
-          // Show current score for each link
-          // Reorder links
-      }
 
+      ////////////////////////////////////////////////////////////////////
+      // Model and inference
+      
+      // Top-level continuation
+      var topK = function(x){
+          console.log(x);
+      };
+      
+      // Update link data, signal reordering and rerendering
+      var processLinkScores = function(scores){          
+          // Update link data
+          for (var i=0; i < scores.length; i++) {
+              linkData[i].score = scores[i];
+          }
+          // Reorder and rerender list of links
+          linkList.setProps({links: linkData});
+      }
+      
       // Run inference to get new link scores
       var runPredictor = function(){
           setStatus("Running predictor...");
@@ -125,7 +146,7 @@
               pastUsers,
               currentUser)
       }      
-
+      
       // Load, compile and evaluate model code
       setStatus("Loading model code...");
       $.ajax({

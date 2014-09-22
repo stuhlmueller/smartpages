@@ -1,8 +1,26 @@
-li.scoredLink {
-   margin-top: .5em;
+span.score {
+   margin-right: .5em;
+   color: #aaa;
 }
 
-span.score {
-   margin-left: .5em;
-   color: #bbb;
+div#linklist { 
+   position: relative; 
+   margin-left: 2em;
 }
+
+div#status {
+  position: absolute;
+  top: 11em;
+}
+
+div#linklist ul li { 
+   position: absolute; top: .5em; left: 0;
+   transition: all 0.5s ease-out;
+   padding-top: .5em;
+}
+ 
+div#linklist ul li:nth-child(1)  { transform: translate3d(0, 0%, 0); }
+div#linklist ul li:nth-child(2)  { transform: translate3d(0, 100%, 0); }
+div#linklist ul li:nth-child(3)  { transform: translate3d(0, 200%, 0); }
+div#linklist ul li:nth-child(4)  { transform: translate3d(0, 300%, 0); }
+div#linklist ul li:nth-child(5)  { transform: translate3d(0, 400%, 0); }

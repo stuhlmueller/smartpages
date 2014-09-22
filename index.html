@@ -70,6 +70,12 @@
       ////////////////////////////////////////////////////////////////////
       // User interface
 
+      var sorted = function(xs, cmp){
+          var xs2 = xs.slice();
+          xs2.sort(cmp);
+          return xs2;
+      }
+      
       var ScoredLink = React.createClass({
           incrementClickCount: function(e){
               linkData[this.props.data.id].clicks += 1;
@@ -88,12 +94,12 @@
 
       var ScoredLinkList = React.createClass({          
           render: function(){
-              // sort links by score
-              var linkCopy = this.props.links.slice();
-              linkCopy.sort(function(a, b){
-                  return a.score < b.score;
-              });              
-              var linkNodes = linkCopy.map(function(link){
+              var sortedLinks = sorted(
+                  this.props.links, 
+                  function(a, b){
+                      return a.score < b.score;
+                  });
+              var linkNodes = sortedLinks.map(function(link){
                   return (<li className="scoredLink">
                             <ScoredLink data={link} />
                          </li>);

@@ -1,22 +1,9 @@
-// Utils
-
-var sum = function(xs){
-  if (xs.length == 0) {
-    return 0;
+var ones = function(n){
+  if (n == 0){
+    return [];
   } else {
-    return xs[0] + sum(xs.slice(1));
+    return [1].concat(ones(n-1));
   }
-};
-
-var expectation = function(erp, f){
-  var xs = erp.support([]);
-  var W = sum(map(xs, function(x){return Math.exp(erp.score([], x)) * f(x);}));
-  var Z = sum(map(xs, function(x){return Math.exp(erp.score([], x));}));
-  return W / Z;
-};
-
-var nthMean = function(erp, n){
-  return expectation(erp, function(x){return x[n];});
 };
 
 var range = function(n, j){
@@ -28,79 +15,78 @@ var range = function(n, j){
   }
 };
 
-var ones = function(n){
-  if (n == 0){
-    return [];
-  } else {
-    return [1].concat(ones(n-1));
-  }
-};
-
-
-// Predictor
-
-// numLinks:
-//   total number of links; ids will be 0...(numLinks-1)
-// numTypes:
-//   number of user prototypes
-// pastUsers:
-//   list of lists; each list contains link ids clicked by a user
-// currentUser:
-//   list of link ids clicked by current user
-
-var predict = function(numLinks, numTypes, pastUsers, currentUser){
-
-  var links = range(numLinks);
-
-  var model = function(){
-
-    // Hyperparameters
-
-    var allLinkProbs = map(
-      ones(numTypes),
-      function(){
-        return dirichlet(ones(numLinks));
-      });
-
-    var sampleLinkProbs = function(){
-      // Could also learn a non-uniform distribution
-      // over components
-      var componentIndex = discrete(ones(numTypes));
-      return allLinkProbs[componentIndex];
-    };
-
-    // Past user observations
-    map(
-      pastUsers,
-      function(clicks){
-        var ps = sampleLinkProbs();
-        map(
-          clicks,
-          function(click){
-            erpFactor(discreteERP, [ps], click);
-          });
-      });
-
-    // Current user observation
-    var ps = sampleLinkProbs();
-    map(
-      currentUser,
-      function(click){
-        erpFactor(discreteERP, [ps], click);
-      });
-
-    // Posterior predictive
-    return ps;
+var makeDirichletDiscrete = function(pseudocounts) {
+  var addCount = function(a,i,j) {
+    var j = j==undefined?0:j;
+    if(a.length==0){
+      return [];
+    } else {
+      return [a[0] + (i==j)].concat(addCount(a.slice(1),i,j+1));
+    }
   };
-
-
-  // Average predictive distribution on link clicks for current user
-
-  var erp = MH(model, 100);
-  var result = map(links, function(link){return nthMean(erp, link);});
-
-  return result;
+  globalStore.DDindex = 1 + (globalStore.DDindex==undefined?0:globalStore.DDindex);
+  var ddname = "DD" + globalStore.DDindex;
+  globalStore[ddname] = pseudocounts;
+  var ddSample = function(){
+    var pc = globalStore[ddname];  // get current sufficient stats
+    var val = sample(discreteERP, [pc]);  // sample from predictive. (doesn't need to be normalized.)
+    globalStore[ddname] = addCount(pc, val); // update sufficient stats
+    return val;
+  };
+  var ddObserve = function(val){
+    var pc = globalStore[ddname];  // get current sufficient stats
+    erpFactor(discreteERP, [util.normalizeArray(pc)], val);  // score based on predictive distribution (normalize counts)
+    globalStore[ddname] = addCount(pc, val); // update sufficient stats
+  };
+  return [ddSample, ddObserve];
 };
 
-// Next line is necessary to make predict be defined on top level
-console.log("Loaded.");
+
+// var numLinks = 10;
+// var numUserTypes = 3;
+
+// var clickData = [
+//   [0, 1, 0, 1], // First user clicked 0th, 1st, 0th, 1st link
+//   [2, 3, 2, 3],
+//   [4, 4, 4, 4],
+//   []
+// ];
+
+var predict = function(numLinks, numUserTypes, clickData){
+  var predictiveERP = Enumerate(
+    function(){
+
+      // Create a Dirichlet-Discrete sampler and factor for each user type
+      var dists = repeat(
+        numUserTypes,
+        function(){return makeDirichletDiscrete(ones(numLinks));});
+      var samplers = map(dists, function(d){return d[0];});
+      var observes = map(dists, function(d){return d[1];});
+
+      // Condition on previous users' clicks
+      var previousDatasets = clickData.slice(0, clickData.length-1);
+      map(
+        previousDatasets,
+        function(clicks){
+          var userType = randomInteger(numUserTypes);
+          var observe = observes[userType];
+          map(clicks, observe);
+        });
+
+      // Condition on current user's clicks
+      var clicks = clickData[clickData.length-1];
+      var currentType = randomInteger(numUserTypes);
+      var observe = observes[currentType];
+      map(clicks, observe);
+
+      // Predict current user's next click
+      var ddSampler = samplers[currentType];
+      return ddSampler();
+    });
+
+  var linkProbs = map(range(numLinks),
+                      function(i){return Math.exp(predictiveERP.score([], i));});
+  return linkProbs;
+};
+
+// predict(numLinks, numUserTypes, clickData);

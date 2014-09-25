@@ -14,9 +14,9 @@ div#linklist {
 
 div#status {
    position: absolute;
-   top: 9.5em;
-   left: 2.5em;
    color: #aaa;
+   bottom: 1em;
+   left: 1em;
 }
 
 div#linklist ul li { 
@@ -30,6 +30,12 @@ div#linklist ul li:nth-child(2)  { transform: translate3d(0, 100%, 0); }
 div#linklist ul li:nth-child(3)  { transform: translate3d(0, 200%, 0); }
 div#linklist ul li:nth-child(4)  { transform: translate3d(0, 300%, 0); }
 div#linklist ul li:nth-child(5)  { transform: translate3d(0, 400%, 0); }
+div#linklist ul li:nth-child(6)  { transform: translate3d(0, 500%, 0); }
+div#linklist ul li:nth-child(7)  { transform: translate3d(0, 600%, 0); }
+div#linklist ul li:nth-child(8)  { transform: translate3d(0, 700%, 0); }
+div#linklist ul li:nth-child(9)  { transform: translate3d(0, 800%, 0); }
+div#linklist ul li:nth-child(10)  { transform: translate3d(0, 900%, 0); }
+
 
 li {
    text-shadow: 1px 1px 0 white;

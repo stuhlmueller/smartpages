@@ -49,7 +49,7 @@ var makeDirichletDiscrete = function(pseudocounts) {
 //   [0, 1, 0, 1], // First user clicked 0th, 1st, 0th, 1st link
 //   [2, 3, 2, 3],
 //   [4, 4, 4, 4],
-//   []
+//   [2]
 // ];
 
 var predict = function(numLinks, numUserTypes, clickData){
@@ -81,7 +81,16 @@ var predict = function(numLinks, numUserTypes, clickData){
 
       // Predict current user's next click
       var ddSampler = samplers[currentType];
-      return ddSampler();
+      var nextClick = ddSampler();
+
+      // It's unlikely to be a click that has happened before
+      map(clicks,
+          function(click){
+            if (nextClick == click){
+              factor(-2);
+            }});
+
+      return nextClick;
     });
 
   var linkProbs = map(range(numLinks),

@@ -87,7 +87,7 @@ var predict = function(numLinks, numUserTypes, clickData){
       map(clicks,
           function(click){
             if (nextClick == click){
-              factor(-2);
+              factor(-1.5);
             }});
 
       return nextClick;

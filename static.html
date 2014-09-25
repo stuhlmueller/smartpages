@@ -19,27 +19,27 @@
 
       ////////////////////////////////////////////////////////////////////
       // User interface
-
-      var shortPercentage = function(number){
-          return number.toPrecision(2).slice(2, 4) + "%";
-      }
-
-      var sorted = function(xs, cmp){
-          var xs2 = xs.slice();
-          xs2.sort(cmp);
-          return xs2;
-      }
       
+      var getLinkStyle = function(v, min, max){
+          var frac = (v - min) / (max - min);
+          var s = {
+              color: 'hsl(210, ' + frac * 100 + '%, ' + (80 - frac*50) + '%)'
+          };
+          console.log(s);
+          return s;
+      };
+
       var ScoredLink = React.createClass({
           incrementClickCount: function(e){
               currentUser.push(this.props.data.id);
               setStatus("Click count updated, running predictor...");
               runPredictor();
           },
-          render: function(){
+          render: function(){              
               return (<div>                        
-                        <span className="score">{shortPercentage(this.props.data.score)}</span>
-                        <a href={this.props.data.url} onClick={this.incrementClickCount}>
+                        <a style={getLinkStyle(this.props.data.score, this.props.minScore, this.props.maxScore)} 
+                           href={this.props.data.url} 
+                           onClick={this.incrementClickCount}>
                         {this.props.data.title}
                         </a>                      
                       </div>);
@@ -48,14 +48,12 @@
 
       var ScoredLinkList = React.createClass({          
           render: function(){
-              var sortedLinks = sorted(
-                  this.props.links, 
-                  function(a, b){
-                      return a.score < b.score;
-                  });
-              var linkNodes = sortedLinks.map(function(link){
+              var scores = this.props.links.map(function(link){return link.score});
+              var minScore = Math.min.apply(null, scores);
+              var maxScore = Math.max.apply(null, scores);
+              var linkNodes = this.props.links.map(function(link){
                   return (<li className="scoredLink" key={link.id}>
-                            <ScoredLink data={link} />
+                            <ScoredLink data={link} minScore={minScore} maxScore={maxScore} />
                          </li>);
               })
               return (<ul>
